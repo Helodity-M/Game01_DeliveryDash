@@ -14,26 +14,30 @@ public class Driver : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        float move = 0;
+        float steer = 0;
+
+
         if (Keyboard.current.wKey.isPressed)
         {
-            Debug.Log("Forwards is being pressed.");
+            move = 1;
         }
         else if (Keyboard.current.sKey.isPressed)
         {
-            Debug.Log("Backwards is being pressed.");
+            move = -1;
         }
 
         if (Keyboard.current.aKey.isPressed)
         {
-            Debug.Log("Left is being pressed.");
+            steer = 1;
         }
         else if (Keyboard.current.dKey.isPressed)
         {
-            Debug.Log("Right is being pressed.");
+            steer = -1;
         }
 
 
-        transform.Rotate(0, 0, steerSpeed);
-        transform.Translate(0, moveSpeed, 0);
+        transform.Rotate(0, 0, steerSpeed * steer);
+        transform.Translate(0, moveSpeed * move, 0);
     }
 }
