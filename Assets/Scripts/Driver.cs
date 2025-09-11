@@ -45,6 +45,12 @@ public class Driver : MonoBehaviour
         rb2d.MovePositionAndRotation(rb2d.position + ((Vector2)transform.up * moveAmount), rb2d.rotation + steerAmount);
     }
 
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        //Slow the car down
+        accelerationTime = Mathf.Min(0, Mathf.Abs(accelerationTime - 0.3f)) * Mathf.Sign(accelerationTime);
+    }
+
     float getMovementCurve()
     {
         float curveVal = 0;
