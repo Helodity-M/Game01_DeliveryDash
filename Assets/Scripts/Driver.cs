@@ -15,13 +15,19 @@ public class Driver : MonoBehaviour
     [SerializeField] float decelerationSpeed;
     float accelerationTime;
 
-    // Update is called once per frame
-    void Update()
+    Rigidbody2D rb2d;
+
+    private void Awake()
+    {
+        rb2d = GetComponent<Rigidbody2D>();
+    }
+
+    private void FixedUpdate()
     {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
         float targetTime = input.y;
         bool tryingToSlowdown = Mathf.Abs(targetTime - accelerationTime) > Mathf.Abs(targetTime);
-        
+
         //Use decelerationSpeed if we are currently trying to slow down
         float accelerationChange = (tryingToSlowdown ? decelerationSpeed : accelerationSpeed) * Time.deltaTime;
         accelerationChange = Mathf.Min(accelerationChange, Mathf.Abs(targetTime - accelerationTime));
@@ -32,12 +38,11 @@ public class Driver : MonoBehaviour
         }
         accelerationTime += accelerationChange;
 
-        float moveAmount = getMovementCurve() * moveSpeed * Time.deltaTime;
+        float moveAmount = getMovementCurve() * moveSpeed * Time.fixedDeltaTime;
         //Need to invert input's sign, otherwise A would turn right.
-        float steerAmount = Mathf.Abs(getMovementCurve()) * (steerSpeed + (Mathf.Abs(getMovementCurve()) * moveSteerRatio)) * Time.deltaTime * -input.x;
+        float steerAmount = Mathf.Abs(getMovementCurve()) * (steerSpeed + (Mathf.Abs(getMovementCurve()) * moveSteerRatio)) * Time.fixedDeltaTime * -input.x;
 
-        transform.Rotate(0, 0, steerAmount);
-        transform.Translate(0, moveAmount, 0);
+        rb2d.MovePositionAndRotation(rb2d.position + ((Vector2)transform.up * moveAmount), rb2d.rotation + steerAmount);
     }
 
     float getMovementCurve()
