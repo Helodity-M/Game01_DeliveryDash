@@ -13,6 +13,7 @@ public class Driver : MonoBehaviour
     [SerializeField] AnimationCurve reverseCurve;
     [SerializeField] float accelerationSpeed;
     [SerializeField] float decelerationSpeed;
+    [SerializeField] float brakeSpeed;
     float accelerationTime;
 
     Rigidbody2D rb2d;
@@ -25,13 +26,13 @@ public class Driver : MonoBehaviour
     private void FixedUpdate()
     {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-        float targetTime = input.y;
-        bool tryingToSlowdown = Mathf.Abs(targetTime - accelerationTime) > Mathf.Abs(targetTime);
+        bool tryingToSlowdown = Mathf.Abs(input.y - accelerationTime) > Mathf.Abs(input.y);
+        bool isBraking = Mathf.Abs(input.y - accelerationTime) > 1;
 
         //Use decelerationSpeed if we are currently trying to slow down
-        float accelerationChange = (tryingToSlowdown ? decelerationSpeed : accelerationSpeed) * Time.deltaTime;
-        accelerationChange = Mathf.Min(accelerationChange, Mathf.Abs(targetTime - accelerationTime));
-        if (targetTime < accelerationTime)
+        float accelerationChange = (isBraking ? brakeSpeed : (tryingToSlowdown ? decelerationSpeed : accelerationSpeed)) * Time.deltaTime;
+        accelerationChange = Mathf.Min(accelerationChange, Mathf.Abs(input.y - accelerationTime));
+        if (input.y < accelerationTime)
         {
             //Moving in reverse
             accelerationChange *= -1;

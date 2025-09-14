@@ -893,7 +893,8 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   accelerationSpeed: 0.1
-  decelerationSpeed: 0.3
+  decelerationSpeed: 0.01
+  brakeSpeed: 0.6
 --- !u!212 &799337512
 SpriteRenderer:
   m_ObjectHideFlags: 0
