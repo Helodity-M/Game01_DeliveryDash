@@ -1,4 +1,4 @@
-using Unity.Cinemachine;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Driver : MonoBehaviour
@@ -14,20 +14,47 @@ public class Driver : MonoBehaviour
     [SerializeField] float accelerationSpeed;
     [SerializeField] float decelerationSpeed;
     [SerializeField] float brakeSpeed;
+    [SerializeField] float driftDeceleration;
     float accelerationTime;
 
+    [Header("Drifting")]
+    [SerializeField] [Range(0,1)] float DriftThreshold;
+    [SerializeField] AnimationCurve slipAmount;
+
+    [Header("Particles")]
+    [SerializeField] List<ParticleSystem> TireParticleGO;
+
     Rigidbody2D rb2d;
+
+    bool isDrifting = false;
+    bool tryingToSlowdown = false;
+    bool isBraking = false;
 
     private void Awake()
     {
         rb2d = GetComponent<Rigidbody2D>();
     }
 
+
+    private void Update()
+    {
+        foreach (ParticleSystem gen in TireParticleGO)
+        {
+            if(ShouldShowParticles())
+            {
+               gen.Play();
+            } else
+            {
+               gen.Stop();
+            }
+        }
+    }
+
     private void FixedUpdate()
     {
-        Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-        bool tryingToSlowdown = Mathf.Abs(input.y - accelerationTime) > Mathf.Abs(input.y);
-        bool isBraking = Mathf.Abs(input.y - accelerationTime) > 1;
+        Vector2 input = new Vector2(-Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+        tryingToSlowdown = Mathf.Abs(input.y - accelerationTime) > Mathf.Abs(input.y);
+        isBraking = Mathf.Abs(input.y - accelerationTime) > 1;
 
         //Use decelerationSpeed if we are currently trying to slow down
         float accelerationChange = (isBraking ? brakeSpeed : (tryingToSlowdown ? decelerationSpeed : accelerationSpeed)) * Time.deltaTime;
@@ -38,17 +65,41 @@ public class Driver : MonoBehaviour
             accelerationChange *= -1;
         }
         accelerationTime += accelerationChange;
+        if (isDrifting)
+        {
+            accelerationTime -= driftDeceleration * Time.deltaTime;
+        }
 
-        float moveAmount = getMovementCurve() * moveSpeed * Time.fixedDeltaTime;
-        //Need to invert input's sign, otherwise A would turn right.
-        float steerAmount = Mathf.Abs(getMovementCurve()) * (steerSpeed + (Mathf.Abs(getMovementCurve()) * moveSteerRatio)) * Time.fixedDeltaTime * -input.x;
 
-        rb2d.MovePositionAndRotation(rb2d.position + ((Vector2)transform.up * moveAmount), rb2d.rotation + steerAmount);
+        float moveAmount = getMovementCurve() * moveSpeed;
+       
+        float steerAmount = Mathf.Abs(getMovementCurve()) * (steerSpeed + (Mathf.Abs(getMovementCurve()) * moveSteerRatio)) * Time.fixedDeltaTime * input.x;
+
+        Vector2 driveDir = (Vector2)transform.up;
+        Vector2 slipVal = rb2d.linearVelocity * slipAmount.Evaluate(accelerationTime);
+        float dot = Vector2.Dot(driveDir.normalized, slipVal.normalized);
+        isDrifting = dot <= DriftThreshold && accelerationTime > 0.2f;
+        if (isDrifting)
+        {
+            if (dot < 0)
+            {
+                accelerationTime -= 25 * driftDeceleration * Time.fixedDeltaTime;
+            }
+            
+            //Not Accelerating mid drift
+            if(input.y <= 0)
+            {
+                accelerationTime -= (1 - Mathf.Abs(dot)) * driftDeceleration * Time.fixedDeltaTime;
+            }
+        }
+        Vector2 netDirection = (driveDir + slipVal).normalized;
+        rb2d.MoveRotation(rb2d.rotation + steerAmount);
+        rb2d.linearVelocity = netDirection * moveAmount;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        //Slow the car down
+        //Slow the car down on collision.
         accelerationTime = Mathf.Min(0, Mathf.Abs(accelerationTime - 0.3f)) * Mathf.Sign(accelerationTime);
     }
 
@@ -65,6 +116,11 @@ public class Driver : MonoBehaviour
         }
 
         return curveVal;
+    }
+
+    bool ShouldShowParticles()
+    {
+        return isDrifting || isBraking;
     }
 
 }
