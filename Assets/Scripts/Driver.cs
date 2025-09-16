@@ -14,14 +14,14 @@ public class Driver : MonoBehaviour
     [SerializeField] float accelerationSpeed;
     [SerializeField] float decelerationSpeed;
     [SerializeField] float brakeSpeed;
-    [SerializeField] float driftDeceleration;
     float accelerationTime;
 
     [Header("Drifting")]
     [SerializeField] [Range(0,1)] float DriftThreshold;
     [SerializeField] AnimationCurve slipAmount;
+    [SerializeField] float driftDeceleration;
 
-    [Header("Particles")]
+    [Header("Effects")]
     [SerializeField] List<ParticleSystem> TireParticleGO;
 
     Rigidbody2D rb2d;
@@ -34,8 +34,6 @@ public class Driver : MonoBehaviour
     {
         rb2d = GetComponent<Rigidbody2D>();
     }
-
-
     private void Update()
     {
         foreach (ParticleSystem gen in TireParticleGO)
@@ -103,7 +101,7 @@ public class Driver : MonoBehaviour
         accelerationTime = Mathf.Min(0, Mathf.Abs(accelerationTime - 0.3f)) * Mathf.Sign(accelerationTime);
     }
 
-    float getMovementCurve()
+    public float getMovementCurve()
     {
         float curveVal = 0;
         if (accelerationTime > 0)
