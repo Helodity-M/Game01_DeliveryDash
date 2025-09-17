@@ -23,7 +23,7 @@ public class Driver : MonoBehaviour
 
     [Header("Effects")]
     [SerializeField] List<ParticleSystem> TireParticleGO;
-    [SerializeField] AudioSource DriftAudioSource;
+    [SerializeField] SoundFader DriftAudioSource;
 
     Rigidbody2D rb2d;
 
@@ -37,9 +37,14 @@ public class Driver : MonoBehaviour
     }
     private void Update()
     {
+        if (accelerationTime > 0)
+        {
+            AudioStateMachine.SetState(AudioStateID.Main);
+        }
+
         bool driftEffects = ShouldShowParticles();
 
-        DriftAudioSource.volume = driftEffects ? 0.2f : 0.0f;
+        DriftAudioSource.SetPlaying(driftEffects);
         foreach (ParticleSystem gen in TireParticleGO)
         {
             if(ShouldShowParticles())
