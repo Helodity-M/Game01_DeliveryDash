@@ -20,7 +20,6 @@ public class AudioStateMachine : MonoBehaviour
     {
         if (!Instance)
         {
-            Debug.Log("Setting Audio Instance");
             Instance = this;
             Source = GetComponent<AudioSource>();
             Source.loop = true;
@@ -61,7 +60,7 @@ public class AudioStateMachine : MonoBehaviour
 
         Source.loop = false;
         Source.clip = transition.TransitionClip;
-        Instance.Source.Play();
+        Source.Play();
 
         currentState = targetState;
         isTransitioning = true;

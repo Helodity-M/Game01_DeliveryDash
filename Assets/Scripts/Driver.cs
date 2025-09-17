@@ -42,17 +42,21 @@ public class Driver : MonoBehaviour
             AudioStateMachine.SetState(AudioStateID.Main);
         }
 
-        bool driftEffects = ShouldShowParticles();
+        SetDriftEffectsActive(ShouldShowTireEffects());
+    }
 
-        DriftAudioSource.SetPlaying(driftEffects);
+    void SetDriftEffectsActive(bool active)
+    {
+        DriftAudioSource.SetPlaying(active);
         foreach (ParticleSystem gen in TireParticleGO)
         {
-            if(ShouldShowParticles())
+            if (active)
             {
-               gen.Play();
-            } else
+                gen.Play();
+            }
+            else
             {
-               gen.Stop();
+                gen.Stop();
             }
         }
     }
@@ -125,7 +129,7 @@ public class Driver : MonoBehaviour
         return curveVal;
     }
 
-    bool ShouldShowParticles()
+    bool ShouldShowTireEffects()
     {
         return isDrifting || isBraking;
     }

@@ -18,8 +18,6 @@ public class SoundFader : MonoBehaviour
 
     void Update()
     {
-        float curVolume = Source.volume;
-
         float amtToChange = Mathf.Min(Mathf.Abs(targetVolume - Source.volume), Time.deltaTime * maxVolume / FadeDuration);
         amtToChange *= Mathf.Sign(targetVolume - Source.volume);
         Source.volume += amtToChange;
